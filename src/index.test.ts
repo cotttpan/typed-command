@@ -1,4 +1,4 @@
-import { create, match, isCommand } from './index'
+import { create, match, isCommand, scoped } from './index'
 
 test('create emptry command creator', () => {
   const COMMAND = create('A')
@@ -16,6 +16,19 @@ test('create command creator with payload creator', () => {
   const COMMAND = create('A', (s: string) => s.length)
   expect(COMMAND('hello')).toEqual({ type: 'A', payload: 5 })
   expect(COMMAND.type).toBe('A')
+})
+
+test('scoped', () => {
+  const A = scoped('A/', {
+    B: create('B'),
+    C: create('C', (s: string) => s.length),
+  })
+
+  expect(A.B.type).toBe('A/B')
+  expect(A.B()).toEqual({ type: 'A/B', payload: undefined })
+  expect(A.C.type).toBe('A/C')
+  expect(A.C('aa')).toEqual({ type: 'A/C', payload: 2 })
+  expect(A.C('aa', { meta: true })).toEqual({ type: 'A/C', payload: 2, meta: true })
 })
 
 test('match', () => {
